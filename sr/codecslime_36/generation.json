@@ -1,0 +1,79 @@
+{
+  "codec": "codecslime",
+  "setting": 36.0,
+  "checkpoint": "/home/luca/PycharmProjects/iclr2026rebuttal/audiocodecs-probe/audiocodecs/dynacast_/checkpoints/codecslime-vq8k.safetensors",
+  "checkpoint_sha256": "3323e480adf9c9cf3faabdc822038763b127b343b49938621760dc43dbde9d5c",
+  "bits_per_token": 15,
+  "sample_rate": 16000,
+  "format": "PCM_16",
+  "seed": null,
+  "preprocessing": "mono/resample16k; no gain normalization",
+  "output_alignment": "crop or replicate-pad to reference sample count",
+  "records": [
+    {
+      "id": "2300-131720-0000",
+      "reference": "sr/reference/2300-131720-0000_reference.wav",
+      "reference_sha256": "bf7615f1504915713b3075e4f0ff1a1b469503e6a8c43fc50b5a84436f4740a1",
+      "output": "sr/codecslime_36/2300-131720-0000_codecslime_36.wav",
+      "output_sha256": "84a996497f0de21b42ca658e11ffb51f3a88727d4e4f50315b7d9fcf4811ba36",
+      "samples": 81280,
+      "decoded_samples": 81400,
+      "tokens": 183,
+      "frame_rate_hz": 36.023622047244096,
+      "bitrate_bps": 540.3543307086615,
+      "peak_before_pcm16": 0.7176819443702698
+    },
+    {
+      "id": "237-126133-0006",
+      "reference": "sr/reference/237-126133-0006_reference.wav",
+      "reference_sha256": "13bbd1d9e5aca9f3d3adff9fcc7c0138b56bdc7f05d1e3f2352f866b735bd0f1",
+      "output": "sr/codecslime_36/237-126133-0006_codecslime_36.wav",
+      "output_sha256": "2d1df459312c77e24e6b085528c98fe4537c46b3b08060a2d5d2f1e6ebf79327",
+      "samples": 98400,
+      "decoded_samples": 98400,
+      "tokens": 221,
+      "frame_rate_hz": 35.93495934959349,
+      "bitrate_bps": 539.0243902439024,
+      "peak_before_pcm16": 0.4734713137149811
+    },
+    {
+      "id": "5105-28240-0017",
+      "reference": "sr/reference/5105-28240-0017_reference.wav",
+      "reference_sha256": "a88c2f9c545b79c585422cb6818891663f258f893a92931361449905b578cb5d",
+      "output": "sr/codecslime_36/5105-28240-0017_codecslime_36.wav",
+      "output_sha256": "519e285df93b7cb0cf71b9800e0d9ed855d5e4573bee35c9f3060bca0ccf79ff",
+      "samples": 90640,
+      "decoded_samples": 90800,
+      "tokens": 204,
+      "frame_rate_hz": 36.01059135039718,
+      "bitrate_bps": 540.1588702559577,
+      "peak_before_pcm16": 0.5086314678192139
+    },
+    {
+      "id": "5142-36377-0002",
+      "reference": "sr/reference/5142-36377-0002_reference.wav",
+      "reference_sha256": "71c420d9d92103bce2f1911c3d896d435f9c7bd75a74c5f7ec6e7af5bbef75c7",
+      "output": "sr/codecslime_36/5142-36377-0002_codecslime_36.wav",
+      "output_sha256": "404bd1aa78848db53a57bb53c6277b04dacdf510a93212377e98d1259fbfec2b",
+      "samples": 89920,
+      "decoded_samples": 90000,
+      "tokens": 202,
+      "frame_rate_hz": 35.94306049822064,
+      "bitrate_bps": 539.1459074733095,
+      "peak_before_pcm16": 0.4285277724266052
+    },
+    {
+      "id": "908-157963-0013",
+      "reference": "sr/reference/908-157963-0013_reference.wav",
+      "reference_sha256": "ce3e5933de8ea64fc4bdaed74b29a254bfbae7308289095c8ce8581bfbec9b24",
+      "output": "sr/codecslime_36/908-157963-0013_codecslime_36.wav",
+      "output_sha256": "12de84f0e3a519ab54326224aeb3850603ca4a0d36c9e33ea2f46cc9a61287b6",
+      "samples": 69040,
+      "decoded_samples": 69200,
+      "tokens": 156,
+      "frame_rate_hz": 36.152954808806484,
+      "bitrate_bps": 542.2943221320972,
+      "peak_before_pcm16": 0.47022944688796997
+    }
+  ]
+}

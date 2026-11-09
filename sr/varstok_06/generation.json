@@ -1,0 +1,79 @@
+{
+  "codec": "varstok",
+  "setting": 0.6,
+  "checkpoint": "/home/luca/PycharmProjects/iclr2026rebuttal/audiocodecs-probe/audiocodecs/dynacast_/checkpoints/varstok_thres06_maxspan4.ckpt",
+  "checkpoint_sha256": "f0989942223c638691a39102e74f90fbd41b3fd0b48a1391090dfa78f6f21425",
+  "bits_per_token": 14,
+  "sample_rate": 16000,
+  "format": "PCM_16",
+  "seed": null,
+  "preprocessing": "mono/resample16k; no gain normalization",
+  "output_alignment": "crop or replicate-pad to reference sample count",
+  "records": [
+    {
+      "id": "2300-131720-0000",
+      "reference": "sr/reference/2300-131720-0000_reference.wav",
+      "reference_sha256": "bf7615f1504915713b3075e4f0ff1a1b469503e6a8c43fc50b5a84436f4740a1",
+      "output": "sr/varstok_06/2300-131720-0000_varstok_06.wav",
+      "output_sha256": "f2d9e0ddcd7b5b152295338d1a1ca5cf03110b5ebea456841ed75b5257d4e098",
+      "samples": 81280,
+      "decoded_samples": 81280,
+      "tokens": 119,
+      "frame_rate_hz": 23.4251968503937,
+      "bitrate_bps": 327.9527559055118,
+      "peak_before_pcm16": 1.0025986433029175
+    },
+    {
+      "id": "237-126133-0006",
+      "reference": "sr/reference/237-126133-0006_reference.wav",
+      "reference_sha256": "13bbd1d9e5aca9f3d3adff9fcc7c0138b56bdc7f05d1e3f2352f866b735bd0f1",
+      "output": "sr/varstok_06/237-126133-0006_varstok_06.wav",
+      "output_sha256": "8428d9fb736f2510214ce3c45e14b94c0baf0ca746a62173bbe0caec6f03b1b0",
+      "samples": 98400,
+      "decoded_samples": 98560,
+      "tokens": 148,
+      "frame_rate_hz": 24.0650406504065,
+      "bitrate_bps": 336.910569105691,
+      "peak_before_pcm16": 0.862559974193573
+    },
+    {
+      "id": "5105-28240-0017",
+      "reference": "sr/reference/5105-28240-0017_reference.wav",
+      "reference_sha256": "a88c2f9c545b79c585422cb6818891663f258f893a92931361449905b578cb5d",
+      "output": "sr/varstok_06/5105-28240-0017_varstok_06.wav",
+      "output_sha256": "86d7ac0a8358f48cae207c64cc9a19c6d593ed19fef741782b513aa89a7625df",
+      "samples": 90640,
+      "decoded_samples": 90667,
+      "tokens": 129,
+      "frame_rate_hz": 22.771403353927624,
+      "bitrate_bps": 318.79964695498677,
+      "peak_before_pcm16": 0.8280547261238098
+    },
+    {
+      "id": "5142-36377-0002",
+      "reference": "sr/reference/5142-36377-0002_reference.wav",
+      "reference_sha256": "71c420d9d92103bce2f1911c3d896d435f9c7bd75a74c5f7ec6e7af5bbef75c7",
+      "output": "sr/varstok_06/5142-36377-0002_varstok_06.wav",
+      "output_sha256": "565408e648d7a0fcd3020f4a9cd9563c978c35d2272b2649f8cf88227890e477",
+      "samples": 89920,
+      "decoded_samples": 90027,
+      "tokens": 137,
+      "frame_rate_hz": 24.377224199288257,
+      "bitrate_bps": 341.2811387900356,
+      "peak_before_pcm16": 0.9258672595024109
+    },
+    {
+      "id": "908-157963-0013",
+      "reference": "sr/reference/908-157963-0013_reference.wav",
+      "reference_sha256": "ce3e5933de8ea64fc4bdaed74b29a254bfbae7308289095c8ce8581bfbec9b24",
+      "output": "sr/varstok_06/908-157963-0013_varstok_06.wav",
+      "output_sha256": "21367559d31925f6d7a60f63be9f744519b4de4361ec391c21fedf3206e1ef6b",
+      "samples": 69040,
+      "decoded_samples": 69120,
+      "tokens": 103,
+      "frame_rate_hz": 23.870220162224793,
+      "bitrate_bps": 334.1830822711471,
+      "peak_before_pcm16": 0.9078117609024048
+    }
+  ]
+}

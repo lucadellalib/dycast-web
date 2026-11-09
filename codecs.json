@@ -1,0 +1,156 @@
+[
+  {
+    "name": "EnCodec",
+    "key": "encodec",
+    "hz": "75.0",
+    "kbps": "1.50"
+  },
+  {
+    "name": "DAC",
+    "key": "dac",
+    "hz": "50.0",
+    "kbps": "1.00"
+  },
+  {
+    "name": "WavLM6-KM",
+    "key": "wavlm_kmeans",
+    "hz": "50.0",
+    "kbps": "0.45"
+  },
+  {
+    "name": "SpeechTokenizer",
+    "key": "speechtokenizer",
+    "hz": "50.0",
+    "kbps": "1.00"
+  },
+  {
+    "name": "SemantiCodec",
+    "key": "semanticodec",
+    "hz": "25.0",
+    "kbps": "0.65"
+  },
+  {
+    "name": "Mimi",
+    "key": "mimi",
+    "hz": "12.5",
+    "kbps": "0.69"
+  },
+  {
+    "name": "WavTokenizer",
+    "key": "wavtokenizer",
+    "hz": "40.0",
+    "kbps": "0.48"
+  },
+  {
+    "name": "BigCodec",
+    "key": "bigcodec",
+    "hz": "80.0",
+    "kbps": "1.04"
+  },
+  {
+    "name": "Stable Codec",
+    "key": "stablecodec",
+    "hz": "25.0",
+    "kbps": "0.70"
+  },
+  {
+    "name": "FocalCodec50",
+    "key": "focalcodec",
+    "hz": "50.0",
+    "kbps": "0.65",
+    "directory": "focalcodec50"
+  },
+  {
+    "name": "FocalCodec25",
+    "key": "focalcodec25",
+    "hz": "25.0",
+    "kbps": "0.33"
+  },
+  {
+    "name": "FocalCodec12.5",
+    "key": "focalcodec12_5",
+    "hz": "12.5",
+    "kbps": "0.16"
+  },
+  {
+    "name": "CodecSlime-36",
+    "key": "codecslime_36",
+    "hz": "36.0",
+    "kbps": "0.54",
+    "variable": true
+  },
+  {
+    "name": "CodecSlime-40",
+    "key": "codecslime_40",
+    "hz": "40.0",
+    "kbps": "0.60",
+    "variable": true
+  },
+  {
+    "name": "CodecSlime-60",
+    "key": "codecslime_60",
+    "hz": "60.0",
+    "kbps": "0.90",
+    "variable": true
+  },
+  {
+    "name": "CodecSlime-75",
+    "key": "codecslime_75",
+    "hz": "75.0",
+    "kbps": "1.13",
+    "variable": true
+  },
+  {
+    "name": "VARSTok-0.6",
+    "key": "varstok_06",
+    "hz": "25.0",
+    "kbps": "0.35",
+    "variable": true
+  },
+  {
+    "name": "VARSTok-0.7",
+    "key": "varstok_07",
+    "hz": "29.0",
+    "kbps": "0.41",
+    "variable": true
+  },
+  {
+    "name": "VARSTok-0.8",
+    "key": "varstok_08",
+    "hz": "34.5",
+    "kbps": "0.48",
+    "variable": true
+  },
+  {
+    "name": "DyCAST-CA",
+    "key": "dycast_ca",
+    "hz": "14.4",
+    "kbps": "0.92",
+    "variable": true,
+    "ours": true
+  },
+  {
+    "name": "DyCAST-BP1",
+    "key": "dycast_bp1",
+    "hz": "17.5",
+    "kbps": "1.12",
+    "variable": true,
+    "ours": true
+  },
+  {
+    "name": "DyCAST-BP3",
+    "key": "dycast_bp3",
+    "hz": "9.0",
+    "kbps": "0.57",
+    "variable": true,
+    "ours": true
+  },
+  {
+    "name": "DyCAST-BP5",
+    "key": "dycast_bp5",
+    "hz": "6.2",
+    "kbps": "0.40",
+    "variable": true,
+    "ours": true
+  }
+]

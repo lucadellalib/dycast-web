@@ -1,48 +1,81 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title> Beyond Fixed Frames: Dynamic Character-Aligned Speech Tokenization </title>
         <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
         <style>
+        * { box-sizing: border-box; }
         body {
-    		font-family: 'Montserrat'; margin-left:201px; margin-right:151px
-	     }
-        code {
-            display: block;
-            background-color: #f9f9f9;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-family: 'Courier New', Courier, monospace;
-            white-space: pre;
-            width: 850px;
+            font-family: 'Montserrat', sans-serif;
+            color: #292929;
+            margin: 0;
+            padding: 24px;
         }
-
-        table {
-            border-spacing: 0 10px;
-            margin-bottom: 20px;
+        h1 { margin: 0 auto 28px; font-size: clamp(16px, 2.2vw, 34px); white-space: nowrap; }
+        .listening-notes { max-width: 1200px; margin: 0 auto 24px; font-size: 14px; line-height: 1.6; text-align: center; }
+        .listening-notes ul { margin: 6px 0; padding-left: 0; list-style-position: inside; }
+        .listening-notes li { margin: 6px 0; }
+        #sr { margin: 24px 0 16px; text-align: center; }
+        .comparison-scroll {
+            max-height: 72vh;
+            overflow: auto;
+            border: 1px solid #dedede;
+            border-radius: 8px;
+            position: relative;
         }
-
-        td.label {
-            width: 300px;
-            font-weight: 600;
+        .comparison-scroll:focus-visible { outline: 3px solid #a52a2a; outline-offset: 3px; }
+        .comparison-grid {
+            width: 100%;
+            min-width: 1340px;
+            table-layout: fixed;
+            border-spacing: 0;
+        }
+        .comparison-grid th, .comparison-grid td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e5e5e5;
+            border-right: 1px solid #eeeeee;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .comparison-grid thead th {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: #f4f4f4;
+            color: #292929;
+            box-shadow: 0 1px 0 #d6d6d6;
+        }
+        .comparison-grid .codec-column, .comparison-grid .label { width: 220px; text-align: left; }
+        .comparison-grid .label {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background: #fff;
             color: brown;
-            vertical-align: middle;
-            padding-right: 20px;
+            box-shadow: 1px 0 0 #dedede;
         }
-
-        td.audio-cell {
-            vertical-align: middle;
+        .comparison-grid .codec-column { left: 0; z-index: 4; }
+        .sample-id { display: block; color: #707070; font-size: 11px; font-weight: 400; margin-top: 5px; }
+        .codec-name { display: block; font-size: 14px; font-weight: 600; }
+        .codec-meta { display: block; color: #6d6262; font-size: 12px; font-weight: 400; margin-top: 5px; }
+        .ours-label { font-size: 11px; }
+        .reference-row td, .reference-row .label { background: #f7f8fb; }
+        .ours-row td, .ours-row .label { background: #fff7f5; }
+        .ours-row .codec-name { font-weight: 700; }
+        .comparison-grid audio { display: block; width: 220px; max-width: 100%; height: 40px; margin: 0 auto; }
+        .audio-pending { color: #666; font-size: 12px; }
+        .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+        @media (max-width: 700px) {
+            body { padding: 14px; }
+            h1 { font-size: 24px; white-space: normal; }
+            .comparison-grid { min-width: 1350px; }
+            .comparison-grid .codec-column, .comparison-grid .label { width: 190px; }
+            .comparison-grid th, .comparison-grid td { padding: 10px 8px; }
+            .comparison-scroll { max-height: 75vh; }
         }
-
-        audio {
-            width: 320px;
-        }
-
-        h4 {
-            margin-top: 40px;
-            margin-bottom: 10px;
-        }
-	</style>
+        </style>
 
     </head>
     <body>
@@ -50,556 +83,205 @@
 	        <h1 style="color:brown;"> Beyond Fixed Frames: Dynamic Character-Aligned Speech Tokenization </h1>
 	    </div>
 
-		<h2 style="color:brown;" id='code' align="center"> Abstract </h2>
-    Neural audio codecs are at the core of modern conversational speech technologies, converting continuous speech into sequences of discrete tokens that can be processed by LLMs. However, existing codecs typically operate at fixed frame rates, allocating tokens uniformly in time and producing unnecessarily long sequences. In this work, we introduce DyCAST, a Dynamic Character-Aligned Speech Tokenizer that enables variable-frame-rate tokenization through soft character-level alignment and explicit duration modeling. DyCAST learns to associate tokens with character-level linguistic units during training and supports alignment-free inference with direct control over token durations at decoding time. Experiments show that DyCAST achieves competitive speech resynthesis quality and downstream performance while using significantly fewer tokens than fixed-frame-rate codecs.
-<br><br>
-
-                Please note:
+<section class="listening-notes" aria-label="Listening notes">
+<p>Please note:</p>
 
                 <ul>
-                     <li> Chrome is the preferred browser. The samples may not always run in Firefox. </li> <br>
-                     <li> Use of headphones/earphones recommended. </li> <br>
-                     <li> <b> Please tune your volume appropriately before playing any sample. </b> </li> <br>
-                     <li> <mark> The audio files may take some time to load. </mark> If they do not load even after waiting, it can be a temporary hosting server issue. In that case, please visit again after sometime.</li> 
-                     <br>
+                     <li> Chrome is the preferred browser. The samples may not always run in Firefox. </li>
+                     <li> <b> Please tune your volume appropriately before playing any sample. </b> </li>
+                     <li> <mark> The audio files may take some time to load. </mark> If they do not load even after waiting, it can be a temporary hosting server issue. In that case, please visit again after sometime.</li>
+
                 </ul>
+</section>
 
 
             <h2 style="color:brown;" id='sr'> Speech Resynthesis</h2>
 
-<!--
-<h4 style="color:darkblue;"> Sample A </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/7176-92135-0009_reference.wav" type="audio/wav"> </audio> </td></tr>
 
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/7176-92135-0009_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/7176-92135-0009_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/7176-92135-0009_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/7176-92135-0009_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/7176-92135-0009_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/7176-92135-0009_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/7176-92135-0009_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/7176-92135-0009_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/7176-92135-0009_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/7176-92135-0009_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
- <tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/7176-92135-0009_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/7176-92135-0009_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr> 
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/7176-92135-0009_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/7176-92135-0009_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/7176-92135-0009_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/7176-92135-0009_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
+<!-- BEGIN SAMPLES GRID -->
+<div class="comparison-scroll" role="region" aria-label="Speech resynthesis audio comparison" tabindex="0">
+<table class="comparison-grid">
+<caption class="visually-hidden">Compare the same five recordings across codecs. Frame rates and bitrates appear below codec names.</caption>
+<thead><tr><th scope="col" class="codec-column">Codec</th>
+<th scope="col" id="sample-0">Sample A<span class="sample-id">2300-131720-0000</span></th>
+<th scope="col" id="sample-1">Sample B<span class="sample-id">5142-36377-0002</span></th>
+<th scope="col" id="sample-2">Sample C<span class="sample-id">237-126133-0006</span></th>
+<th scope="col" id="sample-3">Sample D<span class="sample-id">908-157963-0013</span></th>
+<th scope="col" id="sample-4">Sample E<span class="sample-id">5105-28240-0017</span></th>
+</tr></thead>
+<tbody>
+<tr class="reference-row"><th scope="row" class="label" id="codec-reference">Reference</th>
+<td class="audio-cell" headers="codec-reference sample-0"><audio controls preload="none" aria-label="Reference Sample A"><source src="sr/reference/2300-131720-0000_reference.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-reference sample-1"><audio controls preload="none" aria-label="Reference Sample B"><source src="sr/reference/5142-36377-0002_reference.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-reference sample-2"><audio controls preload="none" aria-label="Reference Sample C"><source src="sr/reference/237-126133-0006_reference.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-reference sample-3"><audio controls preload="none" aria-label="Reference Sample D"><source src="sr/reference/908-157963-0013_reference.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-reference sample-4"><audio controls preload="none" aria-label="Reference Sample E"><source src="sr/reference/5105-28240-0017_reference.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="encodec"><th scope="row" class="label" id="codec-encodec"><span class="codec-name">EnCodec</span><span class="codec-meta">75.0 Hz · 1.50 kbps</span></th>
+<td class="audio-cell" headers="codec-encodec sample-0"><audio controls preload="none" aria-label="EnCodec Sample A"><source src="sr/encodec/2300-131720-0000_encodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-encodec sample-1"><audio controls preload="none" aria-label="EnCodec Sample B"><source src="sr/encodec/5142-36377-0002_encodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-encodec sample-2"><audio controls preload="none" aria-label="EnCodec Sample C"><source src="sr/encodec/237-126133-0006_encodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-encodec sample-3"><audio controls preload="none" aria-label="EnCodec Sample D"><source src="sr/encodec/908-157963-0013_encodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-encodec sample-4"><audio controls preload="none" aria-label="EnCodec Sample E"><source src="sr/encodec/5105-28240-0017_encodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="dac"><th scope="row" class="label" id="codec-dac"><span class="codec-name">DAC</span><span class="codec-meta">50.0 Hz · 1.00 kbps</span></th>
+<td class="audio-cell" headers="codec-dac sample-0"><audio controls preload="none" aria-label="DAC Sample A"><source src="sr/dac/2300-131720-0000_dac.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dac sample-1"><audio controls preload="none" aria-label="DAC Sample B"><source src="sr/dac/5142-36377-0002_dac.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dac sample-2"><audio controls preload="none" aria-label="DAC Sample C"><source src="sr/dac/237-126133-0006_dac.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dac sample-3"><audio controls preload="none" aria-label="DAC Sample D"><source src="sr/dac/908-157963-0013_dac.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dac sample-4"><audio controls preload="none" aria-label="DAC Sample E"><source src="sr/dac/5105-28240-0017_dac.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="wavlm_kmeans"><th scope="row" class="label" id="codec-wavlm_kmeans"><span class="codec-name">WavLM6-KM</span><span class="codec-meta">50.0 Hz · 0.45 kbps</span></th>
+<td class="audio-cell" headers="codec-wavlm_kmeans sample-0"><audio controls preload="none" aria-label="WavLM6-KM Sample A"><source src="sr/wavlm_kmeans/2300-131720-0000_wavlm_kmeans.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavlm_kmeans sample-1"><audio controls preload="none" aria-label="WavLM6-KM Sample B"><source src="sr/wavlm_kmeans/5142-36377-0002_wavlm_kmeans.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavlm_kmeans sample-2"><audio controls preload="none" aria-label="WavLM6-KM Sample C"><source src="sr/wavlm_kmeans/237-126133-0006_wavlm_kmeans.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavlm_kmeans sample-3"><audio controls preload="none" aria-label="WavLM6-KM Sample D"><source src="sr/wavlm_kmeans/908-157963-0013_wavlm_kmeans.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavlm_kmeans sample-4"><audio controls preload="none" aria-label="WavLM6-KM Sample E"><source src="sr/wavlm_kmeans/5105-28240-0017_wavlm_kmeans.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="speechtokenizer"><th scope="row" class="label" id="codec-speechtokenizer"><span class="codec-name">SpeechTokenizer</span><span class="codec-meta">50.0 Hz · 1.00 kbps</span></th>
+<td class="audio-cell" headers="codec-speechtokenizer sample-0"><audio controls preload="none" aria-label="SpeechTokenizer Sample A"><source src="sr/speechtokenizer/2300-131720-0000_speechtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-speechtokenizer sample-1"><audio controls preload="none" aria-label="SpeechTokenizer Sample B"><source src="sr/speechtokenizer/5142-36377-0002_speechtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-speechtokenizer sample-2"><audio controls preload="none" aria-label="SpeechTokenizer Sample C"><source src="sr/speechtokenizer/237-126133-0006_speechtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-speechtokenizer sample-3"><audio controls preload="none" aria-label="SpeechTokenizer Sample D"><source src="sr/speechtokenizer/908-157963-0013_speechtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-speechtokenizer sample-4"><audio controls preload="none" aria-label="SpeechTokenizer Sample E"><source src="sr/speechtokenizer/5105-28240-0017_speechtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="semanticodec"><th scope="row" class="label" id="codec-semanticodec"><span class="codec-name">SemantiCodec</span><span class="codec-meta">25.0 Hz · 0.65 kbps</span></th>
+<td class="audio-cell" headers="codec-semanticodec sample-0"><audio controls preload="none" aria-label="SemantiCodec Sample A"><source src="sr/semanticodec/2300-131720-0000_semanticodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-semanticodec sample-1"><audio controls preload="none" aria-label="SemantiCodec Sample B"><source src="sr/semanticodec/5142-36377-0002_semanticodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-semanticodec sample-2"><audio controls preload="none" aria-label="SemantiCodec Sample C"><source src="sr/semanticodec/237-126133-0006_semanticodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-semanticodec sample-3"><audio controls preload="none" aria-label="SemantiCodec Sample D"><source src="sr/semanticodec/908-157963-0013_semanticodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-semanticodec sample-4"><audio controls preload="none" aria-label="SemantiCodec Sample E"><source src="sr/semanticodec/5105-28240-0017_semanticodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="mimi"><th scope="row" class="label" id="codec-mimi"><span class="codec-name">Mimi</span><span class="codec-meta">12.5 Hz · 0.69 kbps</span></th>
+<td class="audio-cell" headers="codec-mimi sample-0"><audio controls preload="none" aria-label="Mimi Sample A"><source src="sr/mimi/2300-131720-0000_mimi.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-mimi sample-1"><audio controls preload="none" aria-label="Mimi Sample B"><source src="sr/mimi/5142-36377-0002_mimi.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-mimi sample-2"><audio controls preload="none" aria-label="Mimi Sample C"><source src="sr/mimi/237-126133-0006_mimi.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-mimi sample-3"><audio controls preload="none" aria-label="Mimi Sample D"><source src="sr/mimi/908-157963-0013_mimi.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-mimi sample-4"><audio controls preload="none" aria-label="Mimi Sample E"><source src="sr/mimi/5105-28240-0017_mimi.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="wavtokenizer"><th scope="row" class="label" id="codec-wavtokenizer"><span class="codec-name">WavTokenizer</span><span class="codec-meta">40.0 Hz · 0.48 kbps</span></th>
+<td class="audio-cell" headers="codec-wavtokenizer sample-0"><audio controls preload="none" aria-label="WavTokenizer Sample A"><source src="sr/wavtokenizer/2300-131720-0000_wavtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavtokenizer sample-1"><audio controls preload="none" aria-label="WavTokenizer Sample B"><source src="sr/wavtokenizer/5142-36377-0002_wavtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavtokenizer sample-2"><audio controls preload="none" aria-label="WavTokenizer Sample C"><source src="sr/wavtokenizer/237-126133-0006_wavtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavtokenizer sample-3"><audio controls preload="none" aria-label="WavTokenizer Sample D"><source src="sr/wavtokenizer/908-157963-0013_wavtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-wavtokenizer sample-4"><audio controls preload="none" aria-label="WavTokenizer Sample E"><source src="sr/wavtokenizer/5105-28240-0017_wavtokenizer.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="bigcodec"><th scope="row" class="label" id="codec-bigcodec"><span class="codec-name">BigCodec</span><span class="codec-meta">80.0 Hz · 1.04 kbps</span></th>
+<td class="audio-cell" headers="codec-bigcodec sample-0"><audio controls preload="none" aria-label="BigCodec Sample A"><source src="sr/bigcodec/2300-131720-0000_bigcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-bigcodec sample-1"><audio controls preload="none" aria-label="BigCodec Sample B"><source src="sr/bigcodec/5142-36377-0002_bigcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-bigcodec sample-2"><audio controls preload="none" aria-label="BigCodec Sample C"><source src="sr/bigcodec/237-126133-0006_bigcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-bigcodec sample-3"><audio controls preload="none" aria-label="BigCodec Sample D"><source src="sr/bigcodec/908-157963-0013_bigcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-bigcodec sample-4"><audio controls preload="none" aria-label="BigCodec Sample E"><source src="sr/bigcodec/5105-28240-0017_bigcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="stablecodec"><th scope="row" class="label" id="codec-stablecodec"><span class="codec-name">Stable Codec</span><span class="codec-meta">25.0 Hz · 0.70 kbps</span></th>
+<td class="audio-cell" headers="codec-stablecodec sample-0"><audio controls preload="none" aria-label="Stable Codec Sample A"><source src="sr/stablecodec/2300-131720-0000_stablecodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-stablecodec sample-1"><audio controls preload="none" aria-label="Stable Codec Sample B"><source src="sr/stablecodec/5142-36377-0002_stablecodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-stablecodec sample-2"><audio controls preload="none" aria-label="Stable Codec Sample C"><source src="sr/stablecodec/237-126133-0006_stablecodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-stablecodec sample-3"><audio controls preload="none" aria-label="Stable Codec Sample D"><source src="sr/stablecodec/908-157963-0013_stablecodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-stablecodec sample-4"><audio controls preload="none" aria-label="Stable Codec Sample E"><source src="sr/stablecodec/5105-28240-0017_stablecodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="focalcodec"><th scope="row" class="label" id="codec-focalcodec"><span class="codec-name">FocalCodec50</span><span class="codec-meta">50.0 Hz · 0.65 kbps</span></th>
+<td class="audio-cell" headers="codec-focalcodec sample-0"><audio controls preload="none" aria-label="FocalCodec50 Sample A"><source src="sr/focalcodec50/2300-131720-0000_focalcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec sample-1"><audio controls preload="none" aria-label="FocalCodec50 Sample B"><source src="sr/focalcodec50/5142-36377-0002_focalcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec sample-2"><audio controls preload="none" aria-label="FocalCodec50 Sample C"><source src="sr/focalcodec50/237-126133-0006_focalcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec sample-3"><audio controls preload="none" aria-label="FocalCodec50 Sample D"><source src="sr/focalcodec50/908-157963-0013_focalcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec sample-4"><audio controls preload="none" aria-label="FocalCodec50 Sample E"><source src="sr/focalcodec50/5105-28240-0017_focalcodec.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="focalcodec25"><th scope="row" class="label" id="codec-focalcodec25"><span class="codec-name">FocalCodec25</span><span class="codec-meta">25.0 Hz · 0.33 kbps</span></th>
+<td class="audio-cell" headers="codec-focalcodec25 sample-0"><audio controls preload="none" aria-label="FocalCodec25 Sample A"><source src="sr/focalcodec25/2300-131720-0000_focalcodec25.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec25 sample-1"><audio controls preload="none" aria-label="FocalCodec25 Sample B"><source src="sr/focalcodec25/5142-36377-0002_focalcodec25.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec25 sample-2"><audio controls preload="none" aria-label="FocalCodec25 Sample C"><source src="sr/focalcodec25/237-126133-0006_focalcodec25.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec25 sample-3"><audio controls preload="none" aria-label="FocalCodec25 Sample D"><source src="sr/focalcodec25/908-157963-0013_focalcodec25.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec25 sample-4"><audio controls preload="none" aria-label="FocalCodec25 Sample E"><source src="sr/focalcodec25/5105-28240-0017_focalcodec25.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="focalcodec12_5"><th scope="row" class="label" id="codec-focalcodec12_5"><span class="codec-name">FocalCodec12.5</span><span class="codec-meta">12.5 Hz · 0.16 kbps</span></th>
+<td class="audio-cell" headers="codec-focalcodec12_5 sample-0"><audio controls preload="none" aria-label="FocalCodec12.5 Sample A"><source src="sr/focalcodec12_5/2300-131720-0000_focalcodec12_5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec12_5 sample-1"><audio controls preload="none" aria-label="FocalCodec12.5 Sample B"><source src="sr/focalcodec12_5/5142-36377-0002_focalcodec12_5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec12_5 sample-2"><audio controls preload="none" aria-label="FocalCodec12.5 Sample C"><source src="sr/focalcodec12_5/237-126133-0006_focalcodec12_5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec12_5 sample-3"><audio controls preload="none" aria-label="FocalCodec12.5 Sample D"><source src="sr/focalcodec12_5/908-157963-0013_focalcodec12_5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-focalcodec12_5 sample-4"><audio controls preload="none" aria-label="FocalCodec12.5 Sample E"><source src="sr/focalcodec12_5/5105-28240-0017_focalcodec12_5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="codecslime_36"><th scope="row" class="label" id="codec-codecslime_36"><span class="codec-name">CodecSlime-36</span><span class="codec-meta">≈ 36.0 Hz · 0.54 kbps</span></th>
+<td class="audio-cell" headers="codec-codecslime_36 sample-0"><audio controls preload="none" aria-label="CodecSlime-36 Sample A"><source src="sr/codecslime_36/2300-131720-0000_codecslime_36.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_36 sample-1"><audio controls preload="none" aria-label="CodecSlime-36 Sample B"><source src="sr/codecslime_36/5142-36377-0002_codecslime_36.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_36 sample-2"><audio controls preload="none" aria-label="CodecSlime-36 Sample C"><source src="sr/codecslime_36/237-126133-0006_codecslime_36.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_36 sample-3"><audio controls preload="none" aria-label="CodecSlime-36 Sample D"><source src="sr/codecslime_36/908-157963-0013_codecslime_36.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_36 sample-4"><audio controls preload="none" aria-label="CodecSlime-36 Sample E"><source src="sr/codecslime_36/5105-28240-0017_codecslime_36.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="codecslime_40"><th scope="row" class="label" id="codec-codecslime_40"><span class="codec-name">CodecSlime-40</span><span class="codec-meta">≈ 40.0 Hz · 0.60 kbps</span></th>
+<td class="audio-cell" headers="codec-codecslime_40 sample-0"><audio controls preload="none" aria-label="CodecSlime-40 Sample A"><source src="sr/codecslime_40/2300-131720-0000_codecslime_40.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_40 sample-1"><audio controls preload="none" aria-label="CodecSlime-40 Sample B"><source src="sr/codecslime_40/5142-36377-0002_codecslime_40.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_40 sample-2"><audio controls preload="none" aria-label="CodecSlime-40 Sample C"><source src="sr/codecslime_40/237-126133-0006_codecslime_40.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_40 sample-3"><audio controls preload="none" aria-label="CodecSlime-40 Sample D"><source src="sr/codecslime_40/908-157963-0013_codecslime_40.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_40 sample-4"><audio controls preload="none" aria-label="CodecSlime-40 Sample E"><source src="sr/codecslime_40/5105-28240-0017_codecslime_40.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="codecslime_60"><th scope="row" class="label" id="codec-codecslime_60"><span class="codec-name">CodecSlime-60</span><span class="codec-meta">≈ 60.0 Hz · 0.90 kbps</span></th>
+<td class="audio-cell" headers="codec-codecslime_60 sample-0"><audio controls preload="none" aria-label="CodecSlime-60 Sample A"><source src="sr/codecslime_60/2300-131720-0000_codecslime_60.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_60 sample-1"><audio controls preload="none" aria-label="CodecSlime-60 Sample B"><source src="sr/codecslime_60/5142-36377-0002_codecslime_60.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_60 sample-2"><audio controls preload="none" aria-label="CodecSlime-60 Sample C"><source src="sr/codecslime_60/237-126133-0006_codecslime_60.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_60 sample-3"><audio controls preload="none" aria-label="CodecSlime-60 Sample D"><source src="sr/codecslime_60/908-157963-0013_codecslime_60.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_60 sample-4"><audio controls preload="none" aria-label="CodecSlime-60 Sample E"><source src="sr/codecslime_60/5105-28240-0017_codecslime_60.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="codecslime_75"><th scope="row" class="label" id="codec-codecslime_75"><span class="codec-name">CodecSlime-75</span><span class="codec-meta">≈ 75.0 Hz · 1.13 kbps</span></th>
+<td class="audio-cell" headers="codec-codecslime_75 sample-0"><audio controls preload="none" aria-label="CodecSlime-75 Sample A"><source src="sr/codecslime_75/2300-131720-0000_codecslime_75.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_75 sample-1"><audio controls preload="none" aria-label="CodecSlime-75 Sample B"><source src="sr/codecslime_75/5142-36377-0002_codecslime_75.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_75 sample-2"><audio controls preload="none" aria-label="CodecSlime-75 Sample C"><source src="sr/codecslime_75/237-126133-0006_codecslime_75.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_75 sample-3"><audio controls preload="none" aria-label="CodecSlime-75 Sample D"><source src="sr/codecslime_75/908-157963-0013_codecslime_75.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-codecslime_75 sample-4"><audio controls preload="none" aria-label="CodecSlime-75 Sample E"><source src="sr/codecslime_75/5105-28240-0017_codecslime_75.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="varstok_06"><th scope="row" class="label" id="codec-varstok_06"><span class="codec-name">VARSTok-0.6</span><span class="codec-meta">≈ 25.0 Hz · 0.35 kbps</span></th>
+<td class="audio-cell" headers="codec-varstok_06 sample-0"><audio controls preload="none" aria-label="VARSTok-0.6 Sample A"><source src="sr/varstok_06/2300-131720-0000_varstok_06.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_06 sample-1"><audio controls preload="none" aria-label="VARSTok-0.6 Sample B"><source src="sr/varstok_06/5142-36377-0002_varstok_06.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_06 sample-2"><audio controls preload="none" aria-label="VARSTok-0.6 Sample C"><source src="sr/varstok_06/237-126133-0006_varstok_06.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_06 sample-3"><audio controls preload="none" aria-label="VARSTok-0.6 Sample D"><source src="sr/varstok_06/908-157963-0013_varstok_06.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_06 sample-4"><audio controls preload="none" aria-label="VARSTok-0.6 Sample E"><source src="sr/varstok_06/5105-28240-0017_varstok_06.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="varstok_07"><th scope="row" class="label" id="codec-varstok_07"><span class="codec-name">VARSTok-0.7</span><span class="codec-meta">≈ 29.0 Hz · 0.41 kbps</span></th>
+<td class="audio-cell" headers="codec-varstok_07 sample-0"><audio controls preload="none" aria-label="VARSTok-0.7 Sample A"><source src="sr/varstok_07/2300-131720-0000_varstok_07.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_07 sample-1"><audio controls preload="none" aria-label="VARSTok-0.7 Sample B"><source src="sr/varstok_07/5142-36377-0002_varstok_07.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_07 sample-2"><audio controls preload="none" aria-label="VARSTok-0.7 Sample C"><source src="sr/varstok_07/237-126133-0006_varstok_07.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_07 sample-3"><audio controls preload="none" aria-label="VARSTok-0.7 Sample D"><source src="sr/varstok_07/908-157963-0013_varstok_07.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_07 sample-4"><audio controls preload="none" aria-label="VARSTok-0.7 Sample E"><source src="sr/varstok_07/5105-28240-0017_varstok_07.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="varstok_08"><th scope="row" class="label" id="codec-varstok_08"><span class="codec-name">VARSTok-0.8</span><span class="codec-meta">≈ 34.5 Hz · 0.48 kbps</span></th>
+<td class="audio-cell" headers="codec-varstok_08 sample-0"><audio controls preload="none" aria-label="VARSTok-0.8 Sample A"><source src="sr/varstok_08/2300-131720-0000_varstok_08.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_08 sample-1"><audio controls preload="none" aria-label="VARSTok-0.8 Sample B"><source src="sr/varstok_08/5142-36377-0002_varstok_08.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_08 sample-2"><audio controls preload="none" aria-label="VARSTok-0.8 Sample C"><source src="sr/varstok_08/237-126133-0006_varstok_08.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_08 sample-3"><audio controls preload="none" aria-label="VARSTok-0.8 Sample D"><source src="sr/varstok_08/908-157963-0013_varstok_08.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-varstok_08 sample-4"><audio controls preload="none" aria-label="VARSTok-0.8 Sample E"><source src="sr/varstok_08/5105-28240-0017_varstok_08.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="dycast_ca" class="ours-row"><th scope="row" class="label" id="codec-dycast_ca"><span class="codec-name">DyCAST-CA <span class="ours-label">(Ours)</span></span><span class="codec-meta">≈ 14.4 Hz · 0.92 kbps</span></th>
+<td class="audio-cell" headers="codec-dycast_ca sample-0"><audio controls preload="none" aria-label="DyCAST-CA Sample A"><source src="sr/dycast_ca/2300-131720-0000_dycast_ca.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_ca sample-1"><audio controls preload="none" aria-label="DyCAST-CA Sample B"><source src="sr/dycast_ca/5142-36377-0002_dycast_ca.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_ca sample-2"><audio controls preload="none" aria-label="DyCAST-CA Sample C"><source src="sr/dycast_ca/237-126133-0006_dycast_ca.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_ca sample-3"><audio controls preload="none" aria-label="DyCAST-CA Sample D"><source src="sr/dycast_ca/908-157963-0013_dycast_ca.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_ca sample-4"><audio controls preload="none" aria-label="DyCAST-CA Sample E"><source src="sr/dycast_ca/5105-28240-0017_dycast_ca.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="dycast_bp1" class="ours-row"><th scope="row" class="label" id="codec-dycast_bp1"><span class="codec-name">DyCAST-BP1 <span class="ours-label">(Ours)</span></span><span class="codec-meta">≈ 17.5 Hz · 1.12 kbps</span></th>
+<td class="audio-cell" headers="codec-dycast_bp1 sample-0"><audio controls preload="none" aria-label="DyCAST-BP1 Sample A"><source src="sr/dycast_bp1/2300-131720-0000_dycast_bp1.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp1 sample-1"><audio controls preload="none" aria-label="DyCAST-BP1 Sample B"><source src="sr/dycast_bp1/5142-36377-0002_dycast_bp1.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp1 sample-2"><audio controls preload="none" aria-label="DyCAST-BP1 Sample C"><source src="sr/dycast_bp1/237-126133-0006_dycast_bp1.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp1 sample-3"><audio controls preload="none" aria-label="DyCAST-BP1 Sample D"><source src="sr/dycast_bp1/908-157963-0013_dycast_bp1.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp1 sample-4"><audio controls preload="none" aria-label="DyCAST-BP1 Sample E"><source src="sr/dycast_bp1/5105-28240-0017_dycast_bp1.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="dycast_bp3" class="ours-row"><th scope="row" class="label" id="codec-dycast_bp3"><span class="codec-name">DyCAST-BP3 <span class="ours-label">(Ours)</span></span><span class="codec-meta">≈ 9.0 Hz · 0.57 kbps</span></th>
+<td class="audio-cell" headers="codec-dycast_bp3 sample-0"><audio controls preload="none" aria-label="DyCAST-BP3 Sample A"><source src="sr/dycast_bp3/2300-131720-0000_dycast_bp3.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp3 sample-1"><audio controls preload="none" aria-label="DyCAST-BP3 Sample B"><source src="sr/dycast_bp3/5142-36377-0002_dycast_bp3.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp3 sample-2"><audio controls preload="none" aria-label="DyCAST-BP3 Sample C"><source src="sr/dycast_bp3/237-126133-0006_dycast_bp3.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp3 sample-3"><audio controls preload="none" aria-label="DyCAST-BP3 Sample D"><source src="sr/dycast_bp3/908-157963-0013_dycast_bp3.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp3 sample-4"><audio controls preload="none" aria-label="DyCAST-BP3 Sample E"><source src="sr/dycast_bp3/5105-28240-0017_dycast_bp3.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+<tr data-codec="dycast_bp5" class="ours-row"><th scope="row" class="label" id="codec-dycast_bp5"><span class="codec-name">DyCAST-BP5 <span class="ours-label">(Ours)</span></span><span class="codec-meta">≈ 6.2 Hz · 0.40 kbps</span></th>
+<td class="audio-cell" headers="codec-dycast_bp5 sample-0"><audio controls preload="none" aria-label="DyCAST-BP5 Sample A"><source src="sr/dycast_bp5/2300-131720-0000_dycast_bp5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp5 sample-1"><audio controls preload="none" aria-label="DyCAST-BP5 Sample B"><source src="sr/dycast_bp5/5142-36377-0002_dycast_bp5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp5 sample-2"><audio controls preload="none" aria-label="DyCAST-BP5 Sample C"><source src="sr/dycast_bp5/237-126133-0006_dycast_bp5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp5 sample-3"><audio controls preload="none" aria-label="DyCAST-BP5 Sample D"><source src="sr/dycast_bp5/908-157963-0013_dycast_bp5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+<td class="audio-cell" headers="codec-dycast_bp5 sample-4"><audio controls preload="none" aria-label="DyCAST-BP5 Sample E"><source src="sr/dycast_bp5/5105-28240-0017_dycast_bp5.wav" type="audio/wav">Your browser does not support audio playback.</audio></td>
+</tr>
+</tbody>
 </table>
-<br> <br> <br>
--->
+</div>
+<!-- END SAMPLES GRID -->
 
-
-<h4 style="color:darkblue;"> Sample A </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/2300-131720-0000_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/2300-131720-0000_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/2300-131720-0000_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/2300-131720-0000_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/2300-131720-0000_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/2300-131720-0000_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/2300-131720-0000_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/2300-131720-0000_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/2300-131720-0000_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/2300-131720-0000_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/2300-131720-0000_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<!-- <tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/2300-131720-0000_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<!-- <tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/2300-131720-0000_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/2300-131720-0000_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/2300-131720-0000_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/2300-131720-0000_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/2300-131720-0000_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample B </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/5142-36377-0002_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/5142-36377-0002_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/5142-36377-0002_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/5142-36377-0002_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/5142-36377-0002_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/5142-36377-0002_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/5142-36377-0002_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/5142-36377-0002_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/5142-36377-0002_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/5142-36377-0002_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/5142-36377-0002_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<!-- <tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/5142-36377-0002_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<!-- <tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/5142-36377-0002_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/5142-36377-0002_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/5142-36377-0002_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/5142-36377-0002_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/5142-36377-0002_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample C </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/237-126133-0006_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/237-126133-0006_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/237-126133-0006_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/237-126133-0006_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/237-126133-0006_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/237-126133-0006_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/237-126133-0006_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/237-126133-0006_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/237-126133-0006_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/237-126133-0006_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/237-126133-0006_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<!-- <tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/237-126133-0006_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<!-- <tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/237-126133-0006_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/237-126133-0006_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/237-126133-0006_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/237-126133-0006_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/237-126133-0006_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<!--
-<h4 style="color:darkblue;"> Sample E </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/3575-170457-0001_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/3575-170457-0001_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/3575-170457-0001_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/3575-170457-0001_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/3575-170457-0001_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/3575-170457-0001_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/3575-170457-0001_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/3575-170457-0001_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/3575-170457-0001_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/3575-170457-0001_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/3575-170457-0001_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/3575-170457-0001_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/3575-170457-0001_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/3575-170457-0001_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/3575-170457-0001_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/3575-170457-0001_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/3575-170457-0001_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
- -->
-
-
-<h4 style="color:darkblue;"> Sample D </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/908-157963-0013_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/908-157963-0013_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/908-157963-0013_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/908-157963-0013_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/908-157963-0013_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/908-157963-0013_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/908-157963-0013_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/908-157963-0013_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/908-157963-0013_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/908-157963-0013_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/908-157963-0013_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<!-- <tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/908-157963-0013_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<!-- <tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/908-157963-0013_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/908-157963-0013_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/908-157963-0013_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/908-157963-0013_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/908-157963-0013_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<!--
-<h4 style="color:darkblue;"> Sample G </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/2961-961-0001_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/2961-961-0001_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/2961-961-0001_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/2961-961-0001_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/2961-961-0001_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/2961-961-0001_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/2961-961-0001_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/2961-961-0001_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/2961-961-0001_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/2961-961-0001_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/2961-961-0001_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/2961-961-0001_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr>
-
-<!-- <tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/2961-961-0001_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/2961-961-0001_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/2961-961-0001_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/2961-961-0001_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/2961-961-0001_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>-->
-
-
-<!--
-<h4 style="color:darkblue;"> Sample H </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/8555-292519-0007_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/8555-292519-0007_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/8555-292519-0007_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/8555-292519-0007_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/8555-292519-0007_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/8555-292519-0007_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/8555-292519-0007_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/8555-292519-0007_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/8555-292519-0007_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/8555-292519-0007_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/8555-292519-0007_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
- <tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/8555-292519-0007_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr>
-
- <tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/8555-292519-0007_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/8555-292519-0007_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/8555-292519-0007_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/8555-292519-0007_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/8555-292519-0007_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
--->
-
-
-<!--
-<h4 style="color:darkblue;"> Sample I </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/8455-210777-0059_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/8455-210777-0059_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/8455-210777-0059_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/8455-210777-0059_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/8455-210777-0059_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/8455-210777-0059_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/8455-210777-0059_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/8455-210777-0059_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/8455-210777-0059_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/8455-210777-0059_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/8455-210777-0059_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/8455-210777-0059_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/8455-210777-0059_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr> 
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/8455-210777-0059_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/8455-210777-0059_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/8455-210777-0059_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/8455-210777-0059_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
--->
-
-
-<h4 style="color:darkblue;"> Sample E </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/5105-28240-0017_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> EnCodec (75 Hz - 1.50 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/encodec/5105-28240-0017_encodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> DAC (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dac/5105-28240-0017_dac.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavLM6-KM (50 Hz - 0.45 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavlm_kmeans/5105-28240-0017_wavlm_kmeans.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SpeechTokenizer (50 Hz - 1.00 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/speechtokenizer/5105-28240-0017_speechtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> SemantiCodec (25 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/semanticodec/5105-28240-0017_semanticodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Mimi (12.5 Hz - 0.69 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/mimi/5105-28240-0017_mimi.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> WavTokenizer (40 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/wavtokenizer/5105-28240-0017_wavtokenizer.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> BigCodec (80 Hz - 1.04 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/bigcodec/5105-28240-0017_bigcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> Stable Codec (25 Hz - 0.70 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/stablecodec/5105-28240-0017_stablecodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> FocalCodec (50 Hz - 0.65 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/focalcodec/5105-28240-0017_focalcodec.wav" type="audio/wav">   </audio> </td> </tr>
-
-<!-- <tr><td class="label"> FlexiCodec (9.5 Hz - 0.60 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_953/5105-28240-0017_flexicodec_953.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<!-- <tr><td class="label"> FlexiCodec (6.4 Hz - 0.48 kbps) &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/flexicodec_638/5105-28240-0017_flexicodec_638.wav" type="audio/wav">   </audio> </td> </tr> -->
-
-<tr><td class="label"> <b>DyCAST-CA (14.4 Hz - 0.92 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_ca/5105-28240-0017_dycast_ca.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP1 (17.5 Hz - 1.12 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp1/5105-28240-0017_dycast_bp1.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP3 (9.0 Hz - 0.57 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp3/5105-28240-0017_dycast_bp3.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) (Ours) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/5105-28240-0017_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-<!--
-            <h2 style="color:brown;" id='esc50_overlap'> Retrieval-Augmented Decoding</h2>
-<h4 style="color:darkblue;"> Sample A </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/7176-92135-0009_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/7176-92135-0009_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/7176-92135-0009_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample B </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/2300-131720-0000_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/2300-131720-0000_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/2300-131720-0000_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample C </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/5142-36377-0002_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/5142-36377-0002_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/5142-36377-0002_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample D </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/237-126133-0006_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/237-126133-0006_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/237-126133-0006_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample E </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/3575-170457-0001_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/3575-170457-0001_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/3575-170457-0001_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample F </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/908-157963-0013_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/908-157963-0013_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/908-157963-0013_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample G </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/2961-961-0001_reference.wav" type="audio/wav"> </audio> </td></tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/2961-961-0001_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/2961-961-0001_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample H </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/8555-292519-0007_reference.wav" type="audio/wav"> </audio> </td></tr>
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/8555-292519-0007_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/8555-292519-0007_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample I </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/8455-210777-0059_reference.wav" type="audio/wav"> </audio> </td></tr>
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/8455-210777-0059_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/8455-210777-0059_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-</table>
-<br> <br> <br>
-
-
-
-<h4 style="color:darkblue;"> Sample J </h4>
-<table>
-<tr><td class="label"> Reference &emsp; &emsp; &emsp; </td> <td class="audio-cell"><audio controls> <source src= "sr/reference/5105-28240-0017_reference.wav" type="audio/wav"> </audio> </td></tr>
-<tr><td class="label"> <b>DyCAST-BP5 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5/5105-28240-0017_dycast_bp5.wav" type="audio/wav">   </audio> </td> </tr>
-<tr><td class="label"> <b>DyCAST-BP5 + RAD@95 (6.2 Hz - 0.40 kbps) </b> &emsp; &emsp; </td> <td class="audio-cell"><audio controls>  <source src= "sr/dycast_bp5_95/5105-28240-0017_rad95.wav" type="audio/wav">   </audio> </td> </tr>
-</table>
-<br> <br> <br>
--->
-      
-    </body>
+</body>
 </html>
